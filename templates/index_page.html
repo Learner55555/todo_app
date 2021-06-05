@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head>
+    <title>Todo app</title>
+    <style>
+        .hidden{
+           display: none;
+        }
+        ul{
+            list-style: none;
+            padding:0;
+            margin:0;
+            width: 300px;
+        }
+        li{
+            clear: both;
+        }
+        li button{
+            -webkit-appearance: none;
+            border: none;
+            outline: none;
+            color: red;
+            float: right;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .lists-wrapper, .todos-wrapper{
+            display: inline-block;
+            vertical-align: top;
+        }
+    </style>
+    </head>
+    <body>
+        <div class="lists-wrapper">
+        <ul id = lists>
+            {% for list in lists %}
+            <li>
+                <a href="/lists/{{list.id}}">
+                {{list.name}}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        </div>
+
+        <div class="todos-wrapper">
+            <!-- <h4>{{active_list.name}}</h4> added below -->
+        <form id = "form_id" action="/todos/create" method="POST">
+            <input id = "list_id" type="hidden" value="{{active_list.name}}"/>
+            <input type = "text"  id = "description_id" name = "description" placeholder="Task description" />
+            <input type = submit value = "Create"/>
+        </form>
+        <div id = "error" class = "hidden"> Something went wrong!</div>
+        <ul id ='todos_id'>
+            {% for todo in todos %}
+            <li><input class="check-completed" data-id = "{{todo.id}}" type="checkbox" {% if todo.completed %} checked {% endif %} /> {{todo.description  }}
+            <button class="delete-button" data-id="{{todo.id}}">&cross;</button> <!-- &cross for displaying the x symbol in the view-->
+            </li>
+            {% endfor %}
+        </ul>
+        </div>
+        <script>
+            const deletBtns = document.querySelectorAll('.delete-button');
+            for (let i=0; i<deletBtns.length; i++){
+                const btn = deletBtns[i];
+                btn.onclick = function(e){
+                    const todoId = e.target.dataset['id'];
+                    fetch('/todos/' + todoId,{
+                        method: 'DELETE'
+                    });
+                }
+            }
+
+            const checkboxes = document.querySelectorAll('.check-completed');
+            for (let i=0; i < checkboxes.length; i++){
+                const checkbox = checkboxes[i];
+                checkbox.onchange=function(e){
+                    // console.log('event',e); removed while defining id from the dataset
+                    const newCompleted = e.target.checked;
+                    const todoId = e.target.dataset['id'];
+                    fetch('/todos/' + todoId + '/set-completed',{
+                        method: 'POST',
+                        body: JSON.stringify({
+                            'completed': newCompleted
+                        }),
+                        headers:{
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(function(){
+                      document.getElementById('error').className='hidden';
+                    })
+                    .catch(function(){
+                    document.getElementById('error').className='';
+                    })
+                }
+            }
+            document.getElementById('form_id').onsubmit=function(e){
+                e.preventDefault(); // preventing default to avoid refreshing the page
+                fetch('/todos/create',{
+                    method: 'POST',
+                    body: JSON.stringify({
+                        'description': document.getElementById('description_id').value,
+                        'parent_todolist_id': document.getElementById('list_id').value
+                    }),
+                    headers:{
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(function(response){
+                    return response.json();
+                })
+                .then(function(jsonResponse){
+                    console.log(jsonResponse);
+                    const liItem = document.createElement('LI');
+                    liItem.innerHTML=jsonResponse['description'];
+                    document.getElementById('todos_id').appendChild(liItem);
+                    document.getElementById('error').className='hidden';
+                })
+                .catch(function(){
+                    document.getElementById('error').className='';
+
+                });
+            };
+        </script>
+    </body>
+</html>
+<!-- 
+
+
+
+
+
+
+
+
+
+
+
+
+Blog
+Computer Professionals Program at MIU
+Home
+Academics
+Financial Aid
+Internships
+Student Life
+Contact
+Apply
+Require-
+ments
+Application Steps
+Student
+FAQs
+Application Requirements
+APPLICATION REQUIREMENTS VIDEO
+Our chief administrator, Elaine Guthrie, explains the application requirements and steps.
+
+1. Academic Requirements
+You must possess a 3-4 year undergraduate degree in Computer Science or a related subject from an accredited college or university with a GPA minimum of 3.0 out of 4.
+
+With a grade point average below 3.0, your application will be considered if there is strong professional work experience as a software developer, or you have graduated from a top-level university (as ranked on the world scale). Learn more.
+
+2. Work Experience
+Internationals
+
+4-year degree graduates are required to have a minimum of 6 months of IT work experience.
+
+3-year degree graduates are required to have a minimum of 2-3 years of IT work experience.
+
+Students: Final year or graduate students with a high GPA and no work experience may apply.
+
+US Residents
+
+No work experience required to apply
+
+3. Knowledge Level
+You need to be familiar with one of these languages: C, C#, C++, or Java 8 or 9.
+
+4. Good English Proficiency
+You need to be able to read, speak, and understand English well. Neither TOEFL nor IELTS is required. We do phone or Skype interviews to assess your English skills.
+
+5.  Graduate Record Exam (GRE)
+Although not required for most countries, we strongly encourage you to take the GRE general test. A high GRE score may decrease the initial amount international students are asked to pay upon enrollment. Also, taking the GRE increases the likelihood of internationals obtaining a student visa for our program.
+
+GRE is required from all applicants from India and Iran unless you have 2 years or more of paid professional programming work experience, and your GPA is above 3.0 (B average).
+
+START APPLICATION NOW
+Entry Dates:
+ 
+INTERNATIONAL:
+February
+May
+August
+November
+ 
+U.S. CITIZENS & PERMANENT RESIDENTS:
+February
+August
+Application Steps
+Phase 1:  Complete the online application form HERE.
+Phase 2.1:  Take programming exam.
+For this simple test, you are required to write code in one of the following languages: Java, C++, C#, or C language. If you do not pass the test, you will need to study programming for some time and then take the test again before your application can proceed. See sample test.
+
+ 2.2:  Send the items requested on the Application Checklist including your transcripts and resume for academic review.
+Note: Please do NOT send these items until you are asked to send them.
+
+Admissions will review all your documents and determine if you can be accepted to the MS in Computer Science Program. Some students will be required to have a technical interview with one of our faculty. If you are not accepted to the program, then Admissions will let you know the requirements you will need to fulfill in order to be accepted in the future.
+
+2.3:  English interview via telephone or Skype
+Phase 3:  Acceptance. Financial aid level given
+Phase 4:  Verifiying Finances
+Send bank statement and Program agreement form.
+Send documents verifying finances.
+Submit application fee.
+Sign student agreement form.
+Note: Students from Egypt, Ethiopia and Nepal are required to learn the Transcendental Meditation technique in their home countries before final acceptance is granted.
+
+Phase 5: I-20 & visa status
+5.1: We email I-20 to accepted applicant.
+5.2: You schedule your visa interview at the U.S. embassy, attend your visa interview and receive the visa.
+
+Phase 6:  Travel Arrangements
+6.1: Book a flight to Cedar Rapids, Iowa.
+
+6.2: Notify your admissions representative of your travel itinerary and ask for instructions on transportation to the University.
+
+Phase 7:  Arrival on campus
+Once You’ve Arrived, Here’s What to Expect:
+Enjoy 8-9 months of coursework on campus.
+Search for a Curricular Practical Training (CPT) internship job at a US company under the guidance of our Career Placement Center.
+Complete coursework via distance education while gaining hands-on, professional experience at a full salary, and gain academic credit.
+Attend graduation ceremonies!
+START APPLICATION NOW
+
+Application Links:
+Application Checklist
+Sample Test
+Personal Information Form
+Recommendation Form
+Online Application
+Check Application Status
+Entry Dates:
+ 
+INTERNATIONAL:
+February
+May
+August
+November
+ 
+U.S. CITIZENS & PERMANENT RESIDENTS:
+February
+August
+Most Frequently Asked Questions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+START APPLICATION NOW
+Entry Dates:
+ 
+INTERNATIONAL:
+February
+May
+August
+November
+ 
+U.S. CITIZENS & PERMANENT RESIDENTS:
+February
+August
+Admissions Staff for Computer Professionals Program at Maharishi University of Management
+Our Admissions Team is
+Here to Help You
+START APPLICATION NOW
+Share this page:
+CONTACT INFO:
+MIU Computer Science Dept.
+1000 North Fourth St.
+Fairfield, Iowa 52557 USA
+
+(800) 532-4956
+USA +1 641-472-1153
+
+QUESTIONS?
+Email Us
+
+FOLLOW US
+facebookinstagramlinkedinyoutubewhatsapp
+QUICK LINKS:
+Program Overview
+Entry Tracks
+Courses
+Data Science
+Internships
+Financial Aid
+Faculty
+Student Life
+Meet Our Students
+Local Community
+FAQ
+Visual Sitemap
+ComPro Videos
+Blog
+APPLICATION LINKS
+Apply Now
+Check Application Status
+Application Requirements
+Application Checklist
+Sample Test
+© Copyright - Maharishi International University, Master's in Computer Science - Computer Professionals Program℠ Privacy Policy
+en English
+
+ -->
